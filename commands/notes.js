@@ -49,10 +49,12 @@ function parse(md) {
     if (em && cur) {
       flushE();
       entry = { ts: em[1].trim(), task: em[2], cat: em[3].toUpperCase(), title: '', body: '' };
-      const tm = (lines[i + 1] || '').match(TITLE_RE);
+      let j = i + 1;
+      while (j < lines.length && lines[j].trim() === '') j++;
+      const tm = (lines[j] || '').match(TITLE_RE);
       if (tm) {
         entry.title = tm[1].trim();
-        i++;
+        i = j;
       }
       continue;
     }

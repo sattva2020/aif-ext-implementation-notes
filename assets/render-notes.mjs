@@ -102,13 +102,13 @@ export function parseNotes(md) {
         title: '',
         body: '',
       };
-      const next = lines[i + 1];
-      if (next) {
-        const tm = next.match(TITLE_RE);
-        if (tm) {
-          currentEntry.title = tm[1].trim();
-          i += 1;
-        }
+      // Look ahead for the bold title line, skipping blank lines after the header.
+      let j = i + 1;
+      while (j < lines.length && lines[j].trim() === '') j++;
+      const tm = (lines[j] || '').match(TITLE_RE);
+      if (tm) {
+        currentEntry.title = tm[1].trim();
+        i = j;
       }
       continue;
     }
