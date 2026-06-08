@@ -1,0 +1,38 @@
+{
+  "$schema": "https://raw.githubusercontent.com/lee-to/ai-factory/2.x/schemas/extension.schema.json",
+  "name": "aif-ext-implementation-notes",
+  "version": "1.0.0",
+  "description": "Append-only decision journal for /aif-implement. Records decisions, deviations, tradeoffs, surprises and open questions made during implementation (markdown canon + auto-generated HTML view), feeds them into /aif-commit bodies, and checks coverage in /aif-verify.",
+  "commands": [
+    {
+      "name": "notes",
+      "description": "Manage the implementation-notes journal (render HTML, show paths, check coverage)",
+      "module": "./commands/notes.js"
+    }
+  ],
+  "injections": [
+    {
+      "target": "aif-implement",
+      "position": "append",
+      "file": "./injections/implement-notes.md"
+    },
+    {
+      "target": "aif-commit",
+      "position": "append",
+      "file": "./injections/commit-notes.md"
+    },
+    {
+      "target": "aif-verify",
+      "position": "append",
+      "file": "./injections/verify-notes.md"
+    },
+    {
+      "target": "aif-archive",
+      "position": "append",
+      "file": "./injections/archive-notes.md"
+    }
+  ],
+  "skills": [
+    "skills/aif-notes"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "aif-ext-implementation-notes",
+  "version": "1.0.0",
+  "description": "AI Factory extension: append-only decision journal for /aif-implement (markdown canon + auto-generated HTML), wired into /aif-commit, /aif-verify and /aif-archive.",
+  "type": "module",
+  "keywords": [
+    "ai-factory",
+    "aif-extension",
+    "implementation-notes",
+    "decision-journal",
+    "spec-driven-development"
+  ],
+  "license": "MIT",
+  "files": [
+    "extension.json",
+    "assets",
+    "injections",
+    "commands",
+    "skills",
+    "README.md",
+    "LICENSE"
+  ]
+}

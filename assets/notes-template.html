@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Implementation Notes — {{PLAN_NAME}}</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#121933; --panel-2:#0f1530; --ink:#e7ecf7; --muted:#9aa6c2;
+    --line:#1f2a4a; --code-bg:#0a0f24;
+    --decision:#7c9cff;
+    --deviation:#fb923c;
+    --tradeoff:#9aa6c2;
+    --surprise:#facc15;
+    --question:#ef4444;
+    --none:#475569;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:linear-gradient(180deg,#0a0f24 0%, #0b1020 40%, #0b1020 100%);color:var(--ink);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif;}
+  .wrap{max-width:980px;margin:0 auto;padding:32px 24px 80px}
+  header.page{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+  header.page h1{font-size:24px;margin:0;letter-spacing:-0.01em}
+  header.page .sub{color:var(--muted);font-size:13px}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;position:sticky;top:8px;z-index:10;backdrop-filter:blur(8px);margin-bottom:18px}
+  .toolbar .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .toolbar .grow{flex:1}
+  button.chip,button.btn{background:var(--panel-2);color:var(--ink);border:1px solid var(--line);padding:5px 11px;border-radius:999px;font-size:12px;cursor:pointer;font:inherit}
+  button.chip:hover,button.btn:hover{border-color:#5eead4}
+  button.chip.active{background:#1a2548;border-color:#5eead4;color:#5eead4}
+  button.chip[data-cat="decision"].active{border-color:var(--decision);color:var(--decision)}
+  button.chip[data-cat="deviation"].active{border-color:var(--deviation);color:var(--deviation)}
+  button.chip[data-cat="tradeoff"].active{border-color:var(--tradeoff);color:var(--tradeoff)}
+  button.chip[data-cat="surprise"].active{border-color:var(--surprise);color:var(--surprise)}
+  button.chip[data-cat="question"].active{border-color:var(--question);color:var(--question)}
+  .toolbar .counts{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+  main{display:flex;flex-direction:column;gap:18px}
+  section.session{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px 18px 14px}
+  section.session > h2{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin:10px 0 4px;font-weight:500}
+  article.note{padding:12px 0;border-top:1px solid var(--line)}
+  article.note:first-of-type{border-top:none}
+  article.note header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:4px}
+  article.note .cat{font:600 10.5px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;padding:2px 8px;border-radius:6px;color:#0b1020;background:#475569}
+  article.note[data-cat="decision"] .cat{background:var(--decision)}
+  article.note[data-cat="deviation"] .cat{background:var(--deviation)}
+  article.note[data-cat="tradeoff"] .cat{background:var(--tradeoff)}
+  article.note[data-cat="surprise"] .cat{background:var(--surprise)}
+  article.note[data-cat="question"] .cat{background:var(--question);color:#fff}
+  article.note[data-cat="none"] .cat{background:var(--none);color:#cbd5e1}
+  article.note .task{font-size:11.5px;color:var(--muted)}
+  article.note time{font-size:11.5px;color:var(--muted);margin-left:auto;font-variant-numeric:tabular-nums}
+  article.note h3{margin:2px 0 6px;font-size:14px;font-weight:600}
+  article.note p{margin:0;color:#cfd6ec;white-space:pre-wrap}
+  article.note code{background:var(--code-bg);padding:1px 6px;border-radius:4px;font:12px ui-monospace,SFMono-Regular,Menlo,monospace;color:#dbe1f5}
+  article.note.hidden{display:none}
+  footer.page{color:var(--muted);font-size:12px;text-align:center;margin-top:32px}
+  .empty{padding:30px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="page">
+  <h1>Implementation Notes</h1>
+  <div class="sub">Plan: <code>{{PLAN_NAME}}</code> · Started: <code>{{STARTED_AT}}</code> · Append-only journal of decisions, deviations, tradeoffs, surprises and open questions.</div>
+</header>
+
+<div class="toolbar">
+  <div class="chips">
+    <button class="chip active" data-filter="all">All</button>
+    <button class="chip" data-filter="decision" data-cat="decision">Decisions</button>
+    <button class="chip" data-filter="deviation" data-cat="deviation">Deviations</button>
+    <button class="chip" data-filter="tradeoff" data-cat="tradeoff">Tradeoffs</button>
+    <button class="chip" data-filter="surprise" data-cat="surprise">Surprises</button>
+    <button class="chip" data-filter="question" data-cat="question">Questions</button>
+  </div>
+  <div class="grow"></div>
+  <span class="counts" id="counts">0 entries</span>
+  <button class="btn" id="copyCommit" title="Copy current session as markdown for commit body">Copy session for commit</button>
+</div>
+
+<main id="notes">
+<!-- ENTRIES -->
+</main>
+
+<footer class="page">IMPLEMENTATION_NOTES.html · auto-generated from IMPLEMENTATION_NOTES.md · aif-ext-implementation-notes</footer>
+</div>
+
+<script>
+(function(){
+  const notes = () => Array.from(document.querySelectorAll('article.note'));
+  const chips = Array.from(document.querySelectorAll('.chip[data-filter]'));
+  const counts = document.getElementById('counts');
+
+  function applyFilter(f){
+    chips.forEach(c => c.classList.toggle('active', c.dataset.filter === f));
+    notes().forEach(n => n.classList.toggle('hidden', f !== 'all' && n.dataset.cat !== f));
+    const shown = notes().filter(n => !n.classList.contains('hidden')).length;
+    counts.textContent = shown + ' / ' + notes().length + ' entries';
+  }
+  chips.forEach(c => c.addEventListener('click', () => applyFilter(c.dataset.filter)));
+
+  document.getElementById('copyCommit').addEventListener('click', () => {
+    const sessions = Array.from(document.querySelectorAll('section.session'));
+    if (!sessions.length) return;
+    const last = sessions[sessions.length - 1];
+    const groups = {decision:[], deviation:[], tradeoff:[], surprise:[], question:[]};
+    last.querySelectorAll('article.note').forEach(a => {
+      const cat = a.dataset.cat;
+      if (!groups[cat]) return;
+      const title = a.querySelector('h3')?.textContent?.trim() || '';
+      const body  = a.querySelector('p')?.textContent?.trim() || '';
+      const task  = a.dataset.task ? '#' + a.dataset.task : '';
+      groups[cat].push(`- ${task ? task + ' — ' : ''}${title}${body ? ' — ' + body : ''}`);
+    });
+    let out = '';
+    const order = [['decision','Decisions'],['deviation','Deviations'],['tradeoff','Tradeoffs'],['surprise','Surprises'],['question','Open questions']];
+    order.forEach(([k,label]) => {
+      if (groups[k].length) out += `## ${label}\n${groups[k].join('\n')}\n\n`;
+    });
+    out = out.trim() || '_(no notes in last session)_';
+    navigator.clipboard.writeText(out).then(() => {
+      const b = document.getElementById('copyCommit');
+      const orig = b.textContent; b.textContent = 'Copied ✓';
+      setTimeout(()=> b.textContent = orig, 1400);
+    });
+  });
+
+  applyFilter('all');
+  if (!notes().length) {
+    document.getElementById('notes').innerHTML = '<div class="empty">No entries yet. Run <code>/aif-implement</code> — entries appear here after each task.</div>';
+  }
+})();
+</script>
+</body>
+</html>
